@@ -8,14 +8,17 @@ import AvailablePlaces from "./components/AvailablePlaces.jsx";
 import { updateUserPlaces } from "./http.js";
 import { fetchUserPlaces } from "./http.js";
 import Error from "./components/Error.jsx";
+import { useFetch } from "./hooks/useFetch.js";
 
 function App() {
   const selectedPlace = useRef();
 
-  const [userPlaces, setUserPlaces] = useState([]);
   const [errorUpdatingPlaces, setErrorUpdatingPlaces] = useState();
-  const [isFetching, setIsFetching] = useState(false);
-  const [error, setError] = useState();
+  const {
+    error,
+    fetchedData: userPlaces,
+    isFetching,
+  } = useFetch(fetchUserPlaces, []);
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
@@ -28,71 +31,54 @@ function App() {
     setModalIsOpen(false);
   }
 
-  async function handleSelectPlace(selectedPlace) {
-    setUserPlaces((prevPickedPlaces) => {
-      if (!prevPickedPlaces) {
-        prevPickedPlaces = [];
-      }
-      if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
-        return prevPickedPlaces;
-      }
-      return [selectedPlace, ...prevPickedPlaces];
-    });
-    try {
-      console.log("Trying to save");
-      await updateUserPlaces([selectedPlace, ...userPlaces]);
-    } catch (error) {
-      updateUserPlaces(userPlaces);
-      setErrorUpdatingPlaces({
-        message: error.message || "Error updating places",
-      });
-    }
-  }
-
-  useEffect(() => {
-    async function fetchPlaces() {
-      setIsFetching(true);
-      try {
-        const places = await fetchUserPlaces();
-        setUserPlaces(places);
-      } catch (error) {
-        setIsFetching(false);
-        setError({
-          message: error.message || "Failed to fetch user places",
-        });
-      }
-    }
-
-    fetchPlaces();
-  }, []);
+  // async function handleSelectPlace(selectedPlace) {
+  //   setUserPlaces((prevPickedPlaces) => {
+  //     if (!prevPickedPlaces) {
+  //       prevPickedPlaces = [];
+  //     }
+  //     if (prevPickedPlaces.some((place) => place.id === selectedPlace.id)) {
+  //       return prevPickedPlaces;
+  //     }
+  //     return [selectedPlace, ...prevPickedPlaces];
+  //   });
+  //   try {
+  //     console.log("Trying to save");
+  //     await updateUserPlaces([selectedPlace, ...userPlaces]);
+  //   } catch (error) {
+  //     updateUserPlaces(userPlaces);
+  //     setErrorUpdatingPlaces({
+  //       message: error.message || "Error updating places",
+  //     });
+  //   }
+  // }
 
   function handleError() {
     setErrorUpdatingPlaces(null);
   }
 
-  const handleRemovePlace = useCallback(
-    async function handleRemovePlace() {
-      setUserPlaces((prevPickedPlaces) =>
-        prevPickedPlaces.filter(
-          (place) => place.id !== selectedPlace.current.id
-        )
-      );
+  // const handleRemovePlace = useCallback(
+  //   async function handleRemovePlace() {
+  //     setUserPlaces((prevPickedPlaces) =>
+  //       prevPickedPlaces.filter(
+  //         (place) => place.id !== selectedPlace.current.id
+  //       )
+  //     );
 
-      try {
-        await updateUserPlaces(
-          userPlaces.filter((place) => place.id !== selectedPlace.current.id)
-        );
-      } catch (error) {
-        setUserPlaces(userPlaces);
-        setErrorUpdatingPlaces({
-          message: error.message || "Error deleting place",
-        });
-      }
+  //     try {
+  //       await updateUserPlaces(
+  //         userPlaces.filter((place) => place.id !== selectedPlace.current.id)
+  //       );
+  //     } catch (error) {
+  //       setUserPlaces(userPlaces);
+  //       setErrorUpdatingPlaces({
+  //         message: error.message || "Error deleting place",
+  //       });
+  //     }
 
-      setModalIsOpen(false);
-    },
-    [userPlaces]
-  );
+  //     setModalIsOpen(false);
+  //   },
+  //   [userPlaces]
+  // );
 
   return (
     <>
@@ -108,7 +94,7 @@ function App() {
       <Modal open={modalIsOpen} onClose={handleStopRemovePlace}>
         <DeleteConfirmation
           onCancel={handleStopRemovePlace}
-          onConfirm={handleRemovePlace}
+          // onConfirm={handleRemovePlace}
         />
       </Modal>
 
@@ -133,7 +119,9 @@ function App() {
           />
         )}
 
-        <AvailablePlaces onSelectPlace={handleSelectPlace} />
+        <AvailablePlaces
+        // onSelectPlace={handleSelectPlace}
+        />
       </main>
     </>
   );
